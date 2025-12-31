@@ -192,6 +192,8 @@ public class TermuxShellEnvironment extends AndroidShellEnvironment {
 		environment.put("GRADLE", "bash ./gradlew -Pandroid.aapt2FromMavenOverride="
 				+ TermuxConstants.TERMUX_HOME_DIR_PATH + "/.androidide/aapt2");
 		environment.put("JAVA_TOOL_OPTIONS", "-Duser.language=zh -Duser.region=CN");
+		//en_US.UTF-8
+		environment.put("LANG", "zh_CN.UTF-8");
 	}
 }
 

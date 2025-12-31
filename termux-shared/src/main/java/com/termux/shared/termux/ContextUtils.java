@@ -104,10 +104,8 @@ public class ContextUtils {
 		
 		static  {
 			try {
-				if ( !initializedFromZeroAicy() ) {
-					boolean initializedFromEirv = initializedFromEirv();
-					Log.d("HiddenApiBypass initializedFromEirv", initializedFromEirv);
-				} else {
+				boolean initializedFromEirv = initializedFromEirv();
+				if ( initializedFromEirv ) {
 					Log.d("HiddenApiBypass initializedFromZeroAicy OK");
 				}
 			}
@@ -116,35 +114,7 @@ public class ContextUtils {
 			}
 		}
 
-		private static boolean initializedFromZeroAicy( ) {
-			if ( Build.VERSION.SDK_INT < Build.VERSION_CODES.P ) {
-				return true;
-			}
-
-			try {
-				Method forName = Class.class.getDeclaredMethod("forName", String.class);
-				Method getDeclaredMethod = Class.class.getDeclaredMethod("getDeclaredMethod", String.class, Class[].class);
-
-				Class<?> vmRuntimeClass = (Class<?>) forName.invoke(null, "dalvik.system.VMRuntime");
-				Method getRuntime = (Method) getDeclaredMethod.invoke(vmRuntimeClass, "getRuntime", null);
-				HiddenApiBypass.setHiddenApiExemptionsMethod = (Method) getDeclaredMethod.invoke(vmRuntimeClass, "setHiddenApiExemptions", new Class[]{String[].class});
-				HiddenApiBypass.sVmRuntime = getRuntime.invoke(null);
-
-
-				boolean hiddenApiExemptions = setHiddenApiExemptions("L");
-				// 验证一下
-				HiddenApiBypass.currentActivityThread = getActivityThread();
-				
-				System.err.println("解除反射限制测试 currentActivityThread " + currentActivityThread);
-
-				return hiddenApiExemptions;
-			}
-			catch (final Throwable e) {
-				e.printStackTrace();
-			}
-			return false;
-
-		}
+		
 		/*
 		 * @author eirv
 		 */

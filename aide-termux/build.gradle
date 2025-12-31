@@ -6,26 +6,32 @@ android {
 
 	defaultConfig {
 		applicationId "com.aide.termux"
-		minSdkVersion 21
+		minSdkVersion 24
 		targetSdkVersion 34
 		// namespace "com.termux"
 		// minSdk 21
 		// targetSdk 28
 
-		versionCode 1020
-		versionName "0.119.0-beta.1"
+		versionCode 1021
+		versionName "0.119.0-beta.2"
 	}
 
 	
 	signingConfigs{
 		// release自行配置
 		release{
-			keyAlias "AIDE+"
-			keyPassword "123789456"
-			storePassword "123789456"
-			storeFile file("app-release.jks")
+			keyAlias "plus.androidide.cn"
+            keyPassword "22d57bea613beb3f"
+            storePassword "91d973d9f018f1cf"
+            storeFile file("plus.androidide.cn.jks")
 		}
-		debug{
+		debug3{
+			keyAlias "plus.androidide.cn"
+            keyPassword "22d57bea613beb3f"
+            storePassword "91d973d9f018f1cf"
+            storeFile file("plus.androidide.cn.jks")
+		}
+		debug_1{
 			keyAlias "androiddebug"
 			keyPassword "123789456"
 			storePassword "123789456"
