@@ -1,0 +1,40 @@
+name: Build X4AIDE using Android Builder
+
+on:
+  workflow_dispatch:  # سيتم التشغيل يدوياً فقط
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Android environment
+        # هذا الإجراء يقوم بتثبيت JDK 8 و SDK أدوات البناء القديمة
+        uses: android-actions/setup-android@v3
+
+      - name: Install Gradle 2.2
+        run: |
+          wget https://services.gradle.org/distributions/gradle-2.2-bin.zip
+          unzip -q gradle-2.2-bin.zip
+          sudo mv gradle-2.2 /opt/gradle
+          echo "/opt/gradle/bin" >> $GITHUB_PATH
+
+      # خطوة أساسية لإزالة المستودعات الميتة (مثل jcenter) من ملفات البناء
+      - name: Fix repositories
+        run: |
+          sed -i 's|jcenter()|mavenCentral()|g' build.gradle || true
+          sed -i 's|jcenter()|mavenCentral()|g' app/build.gradle || true
+          # في بعض الأحيان يكون هناك سطر منفصل لمستودع jcenter
+          sed -i '/maven { url "https://jcenter.bintray.com" }/d' build.gradle || true
+          sed -i '/maven { url "https://jcenter.bintray.com" }/d' app/build.gradle || true
+
+      - name: Build Debug APK
+        run: gradle :app:assembleDebug --stacktrace --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: X4AIDE-App
+          path: app/build/outputs/apk/debug/*.apk
