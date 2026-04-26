@@ -22,13 +22,13 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
       
-      # تثبيت Gradle مباشرة (بدلاً من استخدام wrapper)
       - name: Install Gradle
         run: |
           wget https://services.gradle.org/distributions/gradle-7.6-bin.zip
           unzip -q gradle-7.6-bin.zip
           sudo mv gradle-7.6 /opt/gradle
           echo "/opt/gradle/bin" >> $GITHUB_PATH
+          gradle --version
       
       - name: Setup Android SDK
         run: |
@@ -40,7 +40,7 @@ jobs:
           mv cmdline-tools/* cmdline-tools/latest/ 2>/dev/null || true
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
           yes | sdkmanager --licenses > /dev/null 2>&1 || true
-          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" > /dev/null 2>&1
+          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
         env:
           ANDROID_HOME: ${{ github.workspace }}/android-sdk
       
@@ -49,11 +49,32 @@ jobs:
           echo "ANDROID_HOME=${{ github.workspace }}/android-sdk" >> $GITHUB_ENV
           echo "PATH=$PATH:${{ github.workspace }}/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_ENV
       
-      # بناء مباشرة باستخدام Gradle المثبت (بدون ./gradlew)
-      - name: Build APK
-        run: gradle :app:assembleDebug --stacktrace --no-daemon
+      # عرض هيكل المشروع للتأكد
+      - name: List project structure
+        run: |
+          echo "=== Project structure ==="
+          ls -la
+          echo "=== App directory ==="
+          ls -la app/ || echo "app directory not found"
+          echo "=== Build files ==="
+          cat build.gradle | head -50 || echo "build.gradle not found"
+      
+      # محاولة بناء مع تفعيل الإخراج التفصيلي
+      - name: Build APK with debug output
+        run: |
+          gradle :app:assembleDebug --stacktrace --info --no-daemon 2>&1 | tee build.log
+      
+      # عرض سجل البناء إذا فشل
+      - name: Show build log on failure
+        if: failure()
+        run: |
+          echo "=== Build log (last 200 lines) ==="
+          tail -200 build.log
+          echo "=== Error summary ==="
+          grep -i "error\|failed\|exception" build.log | head -50 || echo "No errors found in log"
       
       - name: Verify APK
+        if: success()
         run: |
           if ls app/build/outputs/apk/debug/*.apk 1> /dev/null 2>&1; then
             echo "✅ APK built successfully"
@@ -64,8 +85,17 @@ jobs:
           fi
       
       - name: Upload APK
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: X4AIDE-debug
           path: app/build/outputs/apk/debug/*.apk
           retention-days: 30
+      
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
+          retention-days: 7
